@@ -2,6 +2,8 @@ use bson::DateTime;
 use mongodb::{options::ClientOptions, Client, Collection};
 use serde::{Deserialize, Serialize};
 
+use crate::websockets::games::SudokuGen;
+
 /// Player struct.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Player {
@@ -14,11 +16,8 @@ pub struct Player {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SudokuGame {
     pub _id: String,
-    pub players: [String; 2],
-    pub clocks: [u16; 2],
-    pub score: [u8; 2],
     pub status: u8,
-    pub minutes: u8,
+    pub game: SudokuGen
 }
 
 #[derive(Clone)]

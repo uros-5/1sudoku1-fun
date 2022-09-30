@@ -6,9 +6,12 @@ use axum::{
     Extension, TypedHeader,
 };
 use futures::{SinkExt, StreamExt};
+use serde_json::Value;
 use std::sync::Arc;
 
 use crate::database::{session::UserSession, Database};
+
+use super::messages::LiveCount;
 
 /// Pass all app data to websocket handler.
 pub async fn websocket_handler(
@@ -31,7 +34,25 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, user: UserSession) {
         while let Some(Ok(msg)) = receiver.next().await {
             match msg {
                 Message::Text(text) => {
-                    println!("{}", text);
+                    if let Ok(value) = serde_json::from_str::<Value>(&text) {
+                        let data_type = &value["t"];
+                        match data_type {
+                            serde_json::Value::String(t) => {
+                                if t == "players_online" {
+                                    
+                                } else if t == "active_games" {
+                                } else if t == "create_game" {
+                                } else if t == "accept_game" {
+                                } else if t == "resign" {
+                                } else if t == "make_move" {
+                                } else if t == "delete_one" {
+                                } else if t == "delete_all" {
+                                } else if t == "live_game" {
+                                }
+                            }
+                            _ => (),
+                        }
+                    }
                 }
                 Message::Close(_c) => {
                     break;

@@ -1,11 +1,11 @@
-use bson::{document, DateTime};
+use bson::{DateTime, doc};
 use mongodb::Collection;
 
 use super::helpers::{random_session, random_username};
-use super::mongo::Player;
-use super::session::{MemcachedCli, UserSession};
+use super::mongo::{Player, SudokuGame};
+use super::session::{RedisCli, UserSession};
 
-pub async fn create_session(m: &MemcachedCli) -> String {
+pub async fn create_session(m: &RedisCli) -> String {
     let mut m = m.clone();
     loop {
         let session = random_session();
@@ -18,7 +18,7 @@ pub async fn create_session(m: &MemcachedCli) -> String {
 pub async fn create_player(m: &Collection<Player>) -> Player {
     loop {
         let username = random_username();
-        let filter = bson::doc! {"_id": &username};
+        let filter = doc! {"_id": &username};
         if let Ok(r) = m.find_one(filter, None).await {
             if !r.is_some() {
                 return Player {
@@ -31,10 +31,21 @@ pub async fn create_player(m: &Collection<Player>) -> Player {
     }
 }
 
-pub async fn create_for_cookie(m: &MemcachedCli, c: &Collection<Player>) -> UserSession {
+pub async fn create_for_cookie(m: &RedisCli, c: &Collection<Player>) -> UserSession {
     let session = create_session(m).await;
     let player = create_player(c).await;
     let session = m.clone().set(&session, &player._id).await;
     let _ = c.insert_one(player, None).await;
     session
+}
+
+
+pub async fn game_exist(c: &Collection<SudokuGame>, id: String) -> bool {
+    if let Ok(r) = c.find_one(doc!{"_id": id}, None).await {
+        if let Some(r) = r {
+            return true;
+        }
+    }
+    false
+
 }

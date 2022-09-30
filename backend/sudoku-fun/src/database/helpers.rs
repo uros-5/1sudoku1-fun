@@ -21,3 +21,7 @@ pub fn random_username() -> String {
 pub fn random_session() -> String {
     String::from(async_session::Session::new().id())
 }
+
+pub fn random_game() -> String {
+    generate_id!("", 10)
+}

@@ -44,11 +44,11 @@ impl UserSession {
 }
 
 #[derive(Clone)]
-pub struct MemcachedCli {
+pub struct RedisCli {
     pub cli: ConnectionManager,
 }
 
-impl MemcachedCli {
+impl RedisCli {
     pub async fn new() -> Self {
         let cli = redis::Client::open("redis://127.0.0.1").unwrap();
         let cli = ConnectionManager::new(cli).await.unwrap();
@@ -64,21 +64,19 @@ impl MemcachedCli {
     }
 
     pub async fn set(&mut self, key: &str, value: &str) -> UserSession {
-        let res = self
+        let _ = self
             .cli
             .set::<String, String, String>(String::from(key), String::from(value))
             .await;
-        /*
-        if let Err(r) = res {
-            println!("{}", r);
-        }
-        */
         UserSession::new(String::from(value), String::from(key), true)
     }
 
+    /*
     pub fn ttl(&self) -> u32 {
         60 * 60 * 24 * 365
     }
+    */
+    
 }
 
 #[async_trait]
@@ -96,7 +94,7 @@ where
             .await
             .unwrap();
 
-        let m = db.memcached.clone();
+        let mut m = db.redis.clone();
 
         let session_cookie = cookie
             .as_ref()
