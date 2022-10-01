@@ -15,6 +15,7 @@ export interface userStore {
     serverOnline: boolean;
     theme: string;
     gameCount: number;
+    requestId?: string;
 }
 
 export interface sudokuStore {

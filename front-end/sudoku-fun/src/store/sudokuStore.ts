@@ -1,5 +1,6 @@
-import { defineStore } from "pinia";
+import { defineStore, setActivePinia } from "pinia";
 import { sudokuStore, userStore } from "../storeTypes";
+import { useRouter } from "vue-router";
 
 export type myStore = sudokuStore & userStore;
 
@@ -10,6 +11,16 @@ export const useSudokuStore = defineStore("useSudokuStore", {
     actions: {
         setUsername(username: string) {
             this.$state.username = username;
+        },
+        setGameCount(cnt: number) {
+            this.$state.gameCount = cnt;
+        },
+        setNewRequest(id: string) {
+            this.$state.requestId = id;
+        },
+        redirectTo(id: string) {
+            useRouter().push(`http://localhost:5173/${id}`);
+            
         }
 
     }

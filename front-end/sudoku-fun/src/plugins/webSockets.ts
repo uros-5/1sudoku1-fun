@@ -38,10 +38,13 @@ function onmessage(e: any) {
 
     switch (msg.t) {
         case "games_count":
+            sudokuStore.setGameCount(msg.cnt);
             break;
         case "live_created_game":
+            sudokuStore.setNewRequest(msg.game_id);
             break
         case "live_game_accepted":
+            sudokuStore.redirectTo(msg.game_id);
             break;
         case "live_game_resigned": 
             break;
