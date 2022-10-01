@@ -1,6 +1,6 @@
 use tokio::sync::broadcast;
 
-use super::{games::SudokuGames, requests::GameRequests, message_handler::{ClientMessage}};
+use super::{games::SudokuGames, message_handler::ClientMessage, requests::GameRequests};
 
 pub struct WsState {
     pub requests: GameRequests,

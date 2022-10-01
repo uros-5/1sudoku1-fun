@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct LiveCount {
@@ -16,13 +16,13 @@ pub struct CreatingGame {
 pub struct GameMove {
     pub t: String,
     pub game_id: String,
-    #[serde(default)] 
-    pub game_move: String
+    #[serde(default)]
+    pub game_move: String,
 }
 
 #[derive(Clone)]
 pub enum SendTo {
     Me,
     Players([String; 2]),
-    All
+    All,
 }

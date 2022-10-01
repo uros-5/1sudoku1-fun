@@ -13,9 +13,9 @@ pub struct TimeControl {
 
 impl TimeControl {
     pub fn new(minute: u8) -> Self {
-        let clock = Duration::seconds((minute as i64 *60 as i64) as i64);
+        let clock = Duration::seconds((minute as i64 * 60 as i64) as i64);
         let last_click = Utc::now().into();
-        Self {clock, last_click}
+        Self { clock, last_click }
     }
 
     pub fn current_duration(&self) -> Option<Duration> {
@@ -28,7 +28,7 @@ impl TimeControl {
         }
         None
     }
-    
+
     /// Elapsed time since last click.
     fn elapsed(&self) -> Duration {
         let now: DateTime<FixedOffset> = Utc::now().into();

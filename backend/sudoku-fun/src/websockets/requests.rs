@@ -17,24 +17,23 @@ pub struct GameRequest {
     pub id: String,
     pub minute: u8,
     pub caller: String,
-    pub other: String
+    pub other: String,
 }
 pub struct GameRequests {
     requests: Arc<Mutex<HashMap<String, GameRequest>>>,
-    players: Arc<Mutex<HashSet<String>>>
+    players: Arc<Mutex<HashSet<String>>>,
 }
 
 impl Default for GameRequests {
     fn default() -> Self {
         Self {
             requests: arc2(HashMap::new()),
-            players: arc2(HashSet::new())
+            players: arc2(HashSet::new()),
         }
     }
 }
 
 impl GameRequests {
-
     pub fn user_check(&self, user: &String) -> bool {
         if let Some(_) = self.players.lock().unwrap().get(user) {
             return true;
@@ -50,7 +49,12 @@ impl GameRequests {
         false
     }
 
-    pub async fn add(&self, username: &String, minute: u8, c: &Collection<SudokuGame>) -> Option<String> {
+    pub async fn add(
+        &self,
+        username: &String,
+        minute: u8,
+        c: &Collection<SudokuGame>,
+    ) -> Option<String> {
         if !self.user_check(&username) {
             loop {
                 let game_id = random_game();
@@ -66,7 +70,7 @@ impl GameRequests {
                                     id,
                                     minute,
                                     caller: String::from(username),
-                                    other: String::from("")
+                                    other: String::from(""),
                                 },
                             );
                             let mut players = self.players.lock().unwrap();
@@ -97,5 +101,4 @@ impl GameRequests {
         let p = self.players.lock().unwrap();
         p.len()
     }
-
 }

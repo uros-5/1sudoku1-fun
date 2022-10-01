@@ -11,7 +11,11 @@ use std::sync::Arc;
 
 use crate::database::{session::UserSession, Database};
 
-use super::{messages::{LiveCount, SendTo}, state::WsState, message_handler::{MsgSender, MessageHandler}};
+use super::{
+    message_handler::{MessageHandler, MsgSender},
+    messages::SendTo,
+    state::WsState,
+};
 
 macro_rules! send_or_break {
     ($sender: expr, $msg: expr, $username: expr) => {
@@ -77,7 +81,9 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
                         let data_type = &value["t"];
                         match data_type {
                             serde_json::Value::String(t) => {
-                                if t == "active_games" {
+                                if t == "username" {
+                                    handler.get_username();
+                                } else if t == "active_games" {
                                     handler.games_count();
                                 } else if t == "create_game" {
                                     handler.create_game(value).await;

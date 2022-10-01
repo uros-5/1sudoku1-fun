@@ -76,7 +76,6 @@ impl RedisCli {
         60 * 60 * 24 * 365
     }
     */
-    
 }
 
 #[async_trait]

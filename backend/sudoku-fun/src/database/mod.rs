@@ -4,8 +4,8 @@ use self::session::RedisCli;
 pub mod helpers;
 pub mod mongo;
 pub mod queries;
-pub mod session;
 pub mod serde_helpers;
+pub mod session;
 
 #[derive(Clone)]
 pub struct Database {

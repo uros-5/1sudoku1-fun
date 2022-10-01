@@ -30,13 +30,12 @@ impl SudokuGames {
         false
     }
 
-    pub fn add_game(&self, g: &GameRequest) -> [String; 2]{
+    pub fn add_game(&self, g: &GameRequest) -> [String; 2] {
         let mut games = self.games.lock().unwrap();
         let sudoku_game = SudokuGame::from(g);
         let players = sudoku_game.game.players.clone();
         games.insert(String::from(&g.id), sudoku_game);
         players
-        
     }
 
     pub fn games_count(&self) -> usize {
@@ -52,33 +51,36 @@ impl SudokuGames {
                 return Some(r);
             }
         }
-        None 
+        None
     }
 
-    pub fn make_move(&self, id: &String, user: &String, m: &String) {
+    pub fn make_move(&self, id: &String, user: &String, m: &String) -> Option<u8> {
         let mut games = self.games.lock().unwrap();
         if let Some(g) = games.get_mut(id) {
-           g.game.make_move(user, m); 
+            g.game.make_move(user, m);
+            if let Some(finished) = g.game.finished(user) {
+                return Some(finished as u8);
+            }
         }
+        None
     }
 
-    pub fn live_game(&self,id: &String, user: &String) -> Option<SudokuGame> {
-        let mut games = self.games.lock().unwrap();
+    pub fn live_game(&self, id: &String, user: &String) -> Option<SudokuGame> {
+        let games = self.games.lock().unwrap();
         if let Some(g) = games.get(id) {
-            if let Some(i) =  g.game.player_index(user) {
+            if let Some(i) = g.game.player_index(user) {
                 return Some(g.clone());
             }
         }
         None
-    } 
+    }
 
     pub fn live_game_line(&self, id: &String, user: &String) -> Option<String> {
-let games = self.games.lock().unwrap();
+        let games = self.games.lock().unwrap();
         if let Some(g) = games.get(id) {
             return g.game.get_current(user);
         }
         None
-
     }
 }
 
@@ -106,7 +108,7 @@ pub struct SudokuGen {
     pub solution: String,
     pub players: [String; 2],
     pub result: [u8; 2],
-    pub status: u8
+    pub status: u8,
 }
 
 impl SudokuGen {
@@ -134,7 +136,7 @@ impl SudokuGen {
             solution,
             players,
             result: [0, 0],
-            status: 3
+            status: 3,
         }
     }
 
@@ -193,7 +195,16 @@ impl SudokuGen {
                 self.result[index] = 0;
                 self.result[self.other_index(index)] = 1;
                 return Some((self.players.clone(), index));
-            } 
+            }
+        }
+        None
+    }
+
+    pub fn finished(&self, user: &String) -> Option<usize> {
+        if let Some(i) = self.get_current(user) {
+            if i == self.solution {
+                return self.player_index(user);
+            }
         }
         None
     }

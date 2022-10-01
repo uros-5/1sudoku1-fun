@@ -1,4 +1,4 @@
-use bson::{DateTime, doc};
+use bson::{doc, DateTime};
 use mongodb::Collection;
 
 use super::helpers::{random_session, random_username};
@@ -39,13 +39,11 @@ pub async fn create_for_cookie(m: &RedisCli, c: &Collection<Player>) -> UserSess
     session
 }
 
-
 pub async fn game_exist(c: &Collection<SudokuGame>, id: String) -> bool {
-    if let Ok(r) = c.find_one(doc!{"_id": id}, None).await {
+    if let Ok(r) = c.find_one(doc! {"_id": id}, None).await {
         if let Some(r) = r {
             return true;
         }
     }
     false
-
 }

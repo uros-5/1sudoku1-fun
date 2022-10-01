@@ -2,7 +2,7 @@ use async_session::chrono::Duration;
 use serde::{Deserialize, Deserializer, Serializer};
 use std::time::Duration as StdD;
 
-/// Serializing from Duration to u64 
+/// Serializing from Duration to u64
 pub fn duration_i32<S>(x: &Duration, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
@@ -10,7 +10,6 @@ where
     let duration = x.num_milliseconds() as u64;
     s.serialize_u64(duration)
 }
-
 
 /// Deserializing from u64 to Duration
 pub fn i32_duration<'de, D>(data: D) -> Result<Duration, D::Error>
