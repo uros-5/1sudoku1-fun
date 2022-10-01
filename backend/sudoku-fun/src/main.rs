@@ -1,5 +1,5 @@
 use axum::{http::HeaderValue, routing::get, Extension, Router};
-use websockets::handler::websocket_handler;
+use websockets::{handler::websocket_handler, state::WsState};
 
 use std::{
     net::SocketAddr,
@@ -18,9 +18,11 @@ async fn main() {
     let db = Database::new().await;
     let cors_layer = cors();
     let db = Arc::new(db);
+    let ws = Arc::new(WsState::default());
     let app = Router::new()
         .route("/ws/", get(websocket_handler))
         .layer(Extension(db))
+        .layer(Extension(ws))
         .layer(cors_layer);
 
     // run it

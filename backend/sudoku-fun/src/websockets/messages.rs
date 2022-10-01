@@ -16,11 +16,13 @@ pub struct CreatingGame {
 pub struct GameMove {
     pub t: String,
     pub game_id: String,
+    #[serde(default)] 
     pub game_move: String
 }
 
-pub enum PlayerMsg {
-    ForMe,
-    ForPlayers([String; 2]),
-    ForAll
+#[derive(Clone)]
+pub enum SendTo {
+    Me,
+    Players([String; 2]),
+    All
 }

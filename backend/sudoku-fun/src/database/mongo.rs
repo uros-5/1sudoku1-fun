@@ -16,7 +16,6 @@ pub struct Player {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SudokuGame {
     pub _id: String,
-    pub status: u8,
     pub game: SudokuGen
 }
 

@@ -1,0 +1,22 @@
+use tokio::sync::broadcast;
+
+use super::{games::SudokuGames, requests::GameRequests, message_handler::{ClientMessage}};
+
+pub struct WsState {
+    pub requests: GameRequests,
+    pub games: SudokuGames,
+    pub tx: broadcast::Sender<ClientMessage>,
+}
+
+impl Default for WsState {
+    fn default() -> Self {
+        let requests = GameRequests::default();
+        let games = SudokuGames::new();
+        let tx = broadcast::channel(100);
+        Self {
+            requests,
+            games,
+            tx: tx.0,
+        }
+    }
+}

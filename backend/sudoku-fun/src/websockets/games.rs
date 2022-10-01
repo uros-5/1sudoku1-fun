@@ -5,9 +5,91 @@ use std::{
     ops::Range,
     sync::{Arc, Mutex},
 };
+use sudoku::Sudoku;
 
-use super::{messages::GameMove, time_control::TimeControl};
-pub struct SudokuGames {}
+use crate::{arc2, database::mongo::SudokuGame};
+
+use super::{messages::GameMove, requests::GameRequest, time_control::TimeControl};
+pub struct SudokuGames {
+    pub games: Arc<Mutex<HashMap<String, SudokuGame>>>,
+}
+
+impl SudokuGames {
+    pub fn new() -> Self {
+        let games = arc2(HashMap::new());
+        Self { games }
+    }
+
+    pub fn is_playing(&self, username: &String) -> bool {
+        let games = self.games.lock().unwrap();
+        for game in games.iter() {
+            if game.1.game.player_index(username).is_some() {
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn add_game(&self, g: &GameRequest) -> [String; 2]{
+        let mut games = self.games.lock().unwrap();
+        let sudoku_game = SudokuGame::from(g);
+        let players = sudoku_game.game.players.clone();
+        games.insert(String::from(&g.id), sudoku_game);
+        players
+        
+    }
+
+    pub fn games_count(&self) -> usize {
+        let games = self.games.lock().unwrap();
+        games.len()
+    }
+
+    pub fn resign(&self, id: &String, username: &String) -> Option<([String; 2], usize)> {
+        let mut games = self.games.lock().unwrap();
+        if let Some(g) = games.get_mut(id) {
+            if let Some(r) = g.game.resign(username) {
+                games.remove(id);
+                return Some(r);
+            }
+        }
+        None 
+    }
+
+    pub fn make_move(&self, id: &String, user: &String, m: &String) {
+        let mut games = self.games.lock().unwrap();
+        if let Some(g) = games.get_mut(id) {
+           g.game.make_move(user, m); 
+        }
+    }
+
+    pub fn live_game(&self,id: &String, user: &String) -> Option<SudokuGame> {
+        let mut games = self.games.lock().unwrap();
+        if let Some(g) = games.get(id) {
+            if let Some(i) =  g.game.player_index(user) {
+                return Some(g.clone());
+            }
+        }
+        None
+    } 
+
+    pub fn live_game_line(&self, id: &String, user: &String) -> Option<String> {
+let games = self.games.lock().unwrap();
+        if let Some(g) = games.get(id) {
+            return g.game.get_current(user);
+        }
+        None
+
+    }
+}
+
+impl From<&GameRequest> for SudokuGame {
+    fn from(g: &GameRequest) -> Self {
+        Self {
+            _id: String::from(&g.id),
+            game: SudokuGen::new(g),
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SudokuGen {
@@ -23,9 +105,39 @@ pub struct SudokuGen {
     #[serde(skip_deserializing)]
     pub solution: String,
     pub players: [String; 2],
+    pub result: [u8; 2],
+    pub status: u8
 }
 
 impl SudokuGen {
+    pub fn new(g: &GameRequest) -> Self {
+        let sudoku = Sudoku::generate();
+        let started_with = sudoku.to_str_line().to_string();
+        let started_with = String::from(&started_with);
+        let solution = sudoku.solution().unwrap().to_string();
+        let clock = TimeControl::new(g.minute);
+        let score = [0, 0];
+        let current = Arc::new(Mutex::new([
+            String::from(&solution),
+            String::from(&solution),
+        ]));
+        let min = g.minute;
+        let date_created = DateTime::now();
+        let players = [String::from(&g.caller), String::from(&g.other)];
+        Self {
+            clock,
+            score,
+            current,
+            min,
+            date_created,
+            started_with,
+            solution,
+            players,
+            result: [0, 0],
+            status: 3
+        }
+    }
+
     pub fn get_current(&self, user: &String) -> Option<String> {
         if let Some(index) = self.player_index(user) {
             let current = self.current.lock().unwrap();
@@ -74,11 +186,29 @@ impl SudokuGen {
         }
     }
 
+    pub fn resign(&mut self, user: &String) -> Option<([String; 2], usize)> {
+        if let Some(index) = self.player_index(user) {
+            if let Some(tc) = self.clock.current_duration() {
+                self.status = 2;
+                self.result[index] = 0;
+                self.result[self.other_index(index)] = 1;
+                return Some((self.players.clone(), index));
+            } 
+        }
+        None
+    }
+
     fn player_index(&self, user: &String) -> Option<usize> {
         if let Some(index) = self.players.iter().position(|x| x == user) {
             return Some(index);
         }
         None
+    }
+
+    /// Opposite index of specified.
+    fn other_index(&self, index: usize) -> usize {
+        let b: bool = index != 0;
+        usize::from(!b)
     }
 }
 
