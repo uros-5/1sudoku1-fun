@@ -209,6 +209,51 @@ impl SudokuGen {
         None
     }
 
+    pub fn final_score(&mut self) -> (u8, [u8; 2]) {
+        let started_with = self.started_with.as_bytes();
+        let solution = self.solution.as_bytes();
+        let current_m = self.current.lock().unwrap();
+        let current = current_m.clone();
+        let current = [current[0].as_bytes(), current[1].as_bytes()];
+        drop(current_m);
+        let empty_field = '.' as u8;
+        let empty_fields: Vec<usize> = started_with
+            .iter()
+            .enumerate()
+            .filter_map(|i| {
+                if i.1 == &empty_field {
+                    return Some(i.0);
+                }
+                None
+            })
+            .collect();
+
+        for player in [0, 1] {
+            for empty in &empty_fields {
+                if current[player][*empty] == solution[*empty] {
+                    self.score[player]+= 1;
+                }
+            }
+        }
+        self.status_from_score(&self.score)
+    }
+
+    
+
+    fn status_from_score(&self, score: &[u8;2]) -> (u8,[u8;2]) {
+        if score[0] == score[1] {
+            return (0, [0,0]);
+        }
+        else if score[0] > score[1] {
+            return (1, [1,0]);
+        }
+        else if score[1] > score[0] {
+            return (1, [0,1])
+        }
+        return (3, [0,0]);
+
+    }
+
     fn player_index(&self, user: &String) -> Option<usize> {
         if let Some(index) = self.players.iter().position(|x| x == user) {
             return Some(index);

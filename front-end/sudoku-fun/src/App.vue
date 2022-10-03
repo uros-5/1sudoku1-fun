@@ -3,9 +3,15 @@
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import HelloWorld from './components/HelloWorld.vue'
 import Sockette from "sockette";
+import InlineSvg from "vue-inline-svg";
+import test from "@/assets/homeSvg/test.json";
+import startSvg from "@/assets/homeSvg/start.svg";
+import anime, { AnimeInstance } from "animejs";
+import { onMounted, Ref, ref } from 'vue';
+
 const ws = new Sockette('ws://localhost:9000/ws/', {
   timeout: 5e3,
-  maxAttempts: 10,
+  maxAttempts: 0,
   onopen: e => console.log('Connected!', e),
   onmessage: e => console.log('Received:', e),
   onreconnect: e => console.log('Reconnecting...', e),
@@ -14,30 +20,42 @@ const ws = new Sockette('ws://localhost:9000/ws/', {
   onerror: e => console.log('Error:', e)
 });
 console.log(ws);
+console.log(test);
+
+const m: Ref<AnimeInstance | undefined> = ref();
+
+
+function mo() {
+  let morphing = anime({
+    targets: "#rect2",
+    d: test.all,
+    easing: "linear",
+    loop: false,
+    duration: 1500
+  });
+  m.value = morphing;
+}
+
+function reverse() {
+  m.value!.reverse();
+  m.value!.play();
+}
+
+onMounted( () => {
+  setTimeout(mo, 1000);
+
+});
+
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="absolute">
+
+    <InlineSvg @click="reverse()"  :src="startSvg"/>
   </div>
-  <HelloWorld msg="Vite + Vue" />
+ 
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
+
 </style>
