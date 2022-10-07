@@ -1,4 +1,43 @@
+@font-face {
+  font-family: Extraordinare;
+  src: url("assets/fonts/ExtraordinaireDemoRegular.ttf");
+}
+@font-face {
+  font-family: Labtop Secundo Superwide;
+  src: url("assets/fonts/LABTSECW.ttf");
+}
+@font-face {
+  font-family: LabtopSuperWide;
+  src: url("assets/fonts/LABTSECS.ttf");
+}
+@font-face {
+  font-family: OpenSansRegular;
+  src: url("assets/fonts/OpenSans-Regular.ttf");
+}
+@font-face {
+  font-family: SecularOne;
+  src: url("assets/fonts/SecularOne-Regular.ttf");
+}
+@font-face {
+  font-family: TitilliumThin;
+  src: url("assets/fonts/TitilliumWeb-ExtraLight.ttf");
+}
+@font-face {
+  font-family: TitilliumRegular;
+  src: url("assets/fonts/TitilliumWeb-Regular.ttf");
+}
 
+#app {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 0.05fr 1.5fr;
+}
+
+@layer components {
+  .primary-text {
+    @apply text-2xl sm:text-3xl md:text-4xl p-4;
+  }
+}
 
 @tailwind base;
 @tailwind components;

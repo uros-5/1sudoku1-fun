@@ -4,8 +4,8 @@
 
 <svg width="100vw" height="100vh" preserveAspectRatio="none" viewBox="0 0 50 50" version="1.1" id="svg5" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
   <defs id="defs2" />
-  <g id="layer1" style="stroke:#291229;stroke-width:0;stroke-dasharray:none;stroke-opacity:1">
-    <path id="rect2" style="fill:#3c7bab;stroke-linecap:round;stroke-linejoin:round" d="M 54.13492,71.058628 50.852254,50.990964 -0.37945508,51.853406 C 0.3554488,36.484299 -0.9542449,8.4345666 -0.82258577,-9.0539851 -35.987561,55.819882 12.940316,71.941864 54.13492,71.058628 Z" />
+  <g id="layer1" style="stroke:#291229;stroke-width:1.2;stroke-dasharray:none;stroke-opacity:1">
+    <path id="rect2" class="fill-sky-200" style="stroke-linecap:round;stroke-linejoin:round" d="M -23.876913,-50.611985 -54.11105,-2.3369648 c 3.986302,19.4124098 54.95411541,-31.6581382 96.417098,-16.9234582 36.94204,6.32561 31.37587,87.178316 51.909325,85.564875 L 81.496513,-25.07408 Z" />
   </g>
 </svg>
 
