@@ -4,10 +4,6 @@
       <router-link to="/">
         <header class="tf py-1 text-xl">1Sudoku1.fun</header>
       </router-link>
-      <!--
-
-            <InlineSvg width="250px" :src="logo1" />
-            -->
     </div>
   </div>
 </template>

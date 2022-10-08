@@ -3,7 +3,7 @@
     class="col-start-3 col-end-9 row-start-3 md:col-start-4 md:col-span-1 md:row-start-2"
   >
     <div
-      class="bg-sky-100 min-h-full grid grid-cols-5 md:grid-cols-3 ignore-last justify-center border-x-0 border-t-0 border-r-0 border-2 border-sky-300 shadow-sky-300 shadow"
+      class="bg-sky-100 min-h-full grid grid-cols-5 md:grid-cols-3 ignore-last justify-center border-x-0 border-t-0 border-r-0 border-2 border-sky-300 shadow-sky-300 shadow md:shadow-md"
     >
       <button
         v-for="i in numbers"

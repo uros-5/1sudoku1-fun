@@ -8,7 +8,7 @@ let bgSvg = useBackgroundSvgStore();
 </script>
 
 <template>
-  <div class="absolute z-1" :style="bgSvg.translateX()">
+  <div class="absolute z-20" :style="bgSvg.translateX()">
     <InlineSvg :src="startSvg" />
   </div>
   <Header />

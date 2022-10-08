@@ -30,7 +30,7 @@
 @media (min-width: 768px) {
   .all-rows {
     grid-template-rows: 0.2fr 0.6fr 0.2fr 0.4fr;
-    grid-template-columns: 0.2fr 0.2fr 0.8fr 0.6fr 0.25fr 0.2fr;
+    grid-template-columns: 0.2fr 0.2fr 0.8fr 0.6fr 0.25fr 0.03fr 0.2fr;
   }
 }
 </style>

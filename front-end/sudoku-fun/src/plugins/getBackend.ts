@@ -6,8 +6,8 @@ export function backend(): string {
 export function wsUrl(): string {
   let prod = import.meta.env.PROD;
   let ws = prod ? "wss" : "ws";
-  let h = prod ? "https" : "http";
+  let http = prod ? "https" : "http";
   let b = (backend() as string).toString();
-  let s = b.split(`${h}://`)[1];
+  let s = b.split(`${http}://`)[1];
   return `${ws}://${s}ws/`;
 }

@@ -15,6 +15,7 @@
       <span class="fill-orange-100"></span>
       <span class="fill-sky-200 dark:fill-sky-900"></span>
       <span class="fill-gray-200"></span>
+      <span class="bg-gradient-to-r from-sky-200 to-sky-300"></span>
     </span>
   </main>
 </template>
