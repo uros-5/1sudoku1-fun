@@ -18,7 +18,7 @@ pub struct TimeControl {
 
 impl TimeControl {
     pub fn new(minute: u8) -> Self {
-        let clock = Duration::seconds((minute as i64 * 60 as i64 + 2) as i64);
+        let clock = Duration::seconds((minute as i64 * 60 as i64 + 4) as i64);
         let last_click = Utc::now().into();
         Self { clock, last_click }
     }
@@ -44,6 +44,14 @@ impl TimeControl {
 #[derive(Clone)]
 pub enum MsgClock {
     LostOnTime(Arc<Mutex<TimeCheck>>),
+}
+
+
+#[derive(Clone)]
+pub struct CurrentClock {
+    pub finished: bool,
+    pub score: [u8; 2],
+    pub players: [String; 2],
 }
 
 pub struct TimeCheck {

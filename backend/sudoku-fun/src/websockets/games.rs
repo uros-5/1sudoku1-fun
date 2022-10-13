@@ -9,7 +9,7 @@ use sudoku::Sudoku;
 
 use crate::{arc2, database::mongo::SudokuGame};
 
-use super::{requests::GameRequest, time_control::TimeControl};
+use super::{messages::GameResult, requests::GameRequest, time_control::TimeControl};
 
 const TEMP_CHARS: [char; 9] = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -46,13 +46,14 @@ impl SudokuGames {
         games.len()
     }
 
-    pub fn resign(&self, id: &String, username: &String) -> Option<([String; 2], [u8; 2], usize)> {
+    pub fn resign(&self, id: &String, username: &String) -> Option<GameResult> {
         let mut games = self.games.lock().unwrap();
         if let Some(g) = games.get_mut(id) {
             if let Some(r) = g.game.resign(username) {
                 let g = games.remove(id);
                 let score = g.unwrap().game.score.clone();
-                return Some((r.0, score, r.1));
+                let result = GameResult::new(r.0, score, r.1, None);
+                return Some(result);
             }
         }
         None
@@ -63,7 +64,7 @@ impl SudokuGames {
         id: &String,
         user: &String,
         game_move: &String,
-    ) -> Option<(usize, [u8; 2], [String; 2])> {
+    ) -> Option<GameResult> {
         let mut games = self.games.lock().unwrap();
         if let Some(g) = games.get_mut(id) {
             g.game.make_move(user, game_move);
@@ -102,16 +103,17 @@ impl SudokuGames {
         None
     }
 
-    pub fn lost_on_time(&self, id: &String) -> Option<(bool, [u8; 2], Option<SudokuGame>)> {
+    pub fn lost_on_time(&self, id: &String) -> Option<GameResult> {
         let mut games = self.games.lock().unwrap();
         if let Some(g) = games.get_mut(id) {
             let result = g.game.lost_on_time();
             if result.0 {
                 let sudoku_game = games.remove(id);
                 drop(games);
-                return Some((result.0, result.1, sudoku_game));
+                let result = GameResult::new(result.2,result.1, 0, sudoku_game);
+                return Some(result);
             }
-            return Some((false, [0, 0], None));
+            return Some(GameResult::empty());
         }
         None
     }
@@ -248,15 +250,17 @@ impl SudokuGen {
         (true, final_score.1, self.players.clone())
     }
 
-    pub fn finished(&mut self, user: &String) -> Option<(usize, [u8; 2], [String; 2])> {
+    pub fn finished(&mut self, user: &String) -> Option<GameResult> {
         if let Some(i) = self.get_current(user) {
             if i == self.solution {
                 let score = self.final_score();
-                return Some((
-                    self.player_index(user).unwrap(),
-                    score.1,
+                let result = GameResult::new(
                     self.players.clone(),
-                ));
+                    score.1,
+                    self.player_index(user).unwrap(),
+                    None
+                );
+                return Some(result);
             }
         }
         None

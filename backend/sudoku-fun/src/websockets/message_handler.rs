@@ -92,10 +92,9 @@ impl<'a> MessageHandler<'a> {
                             match &msg {
                                 MsgClock::LostOnTime(t) => {
                                     if let Some(res) = ws.games.lost_on_time(&id) {
-                                        if res.0 {
+                                        if let Some(game) = res.game {
                                             t.lock().unwrap().finished();
-                                            let value = serde_json::json!({"t": "game_finished", "score":res.1});
-                                            let game = res.2.unwrap();
+                                            let value = serde_json::json!({"t": "game_finished", "score":res.score});
                                             msg_sender.send_msg(
                                                 value,
                                                 SendTo::Players(game.game.players.clone()),
@@ -130,9 +129,9 @@ impl<'a> MessageHandler<'a> {
 
     pub fn resign(&self, value: Value) {
         if let Ok(v) = serde_json::from_value::<GameMove>(value) {
-            if let Some((p, s, i)) = self.ws.games.resign(&v.game_id, &self.username()) {
-                let value = serde_json::json!({"t": "live_game_resigned", "player": i, "score": s});
-                let to = SendTo::Players(p);
+            if let Some(game_result) = self.ws.games.resign(&v.game_id, &self.username()) {
+                let value = serde_json::json!({"t": "live_game_resigned", "player": game_result.player, "score": game_result.score});
+                let to = SendTo::Players(game_result.players);
                 self.msg_sender.send_msg(value, to);
             }
         }
@@ -145,8 +144,8 @@ impl<'a> MessageHandler<'a> {
                     .games
                     .make_move(&v.game_id, &self.username(), &v.game_move)
             {
-                let value = serde_json::json!({"t":"live_game_winner", "player": finished.0, "score": finished.1});
-                let to = SendTo::Players(finished.2);
+                let value = serde_json::json!({"t":"live_game_winner", "player": finished.player, "score": finished.score});
+                let to = SendTo::Players(finished.players);
                 self.msg_sender.send_msg(value, to);
             }
         }
