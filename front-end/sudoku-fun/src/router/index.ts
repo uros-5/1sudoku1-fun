@@ -8,8 +8,12 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/game/:id",
     component: () =>
-      import(/* webpackChunkName: "Home" */ "@/pages/LiveGame.vue"),
+      import(/* webpackChunkName: "LiveGame" */ "@/pages/LiveGame.vue"),
   },
+  {
+    path: "/g/:id",
+    component: () => import(/* webpackChunkName: "NewGame" */ "@/pages/NewGame.vue")
+  }
 ];
 
 //
@@ -24,10 +28,6 @@ router.beforeEach(async (to, from) => {
   const store = useBackgroundSvgStore();
   let b = await store.activate();
   return b;
-  // }
-  //else {
-  return true;
-  //}
 });
 
 export default router;

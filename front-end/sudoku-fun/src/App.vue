@@ -3,6 +3,10 @@ import InlineSvg from "vue-inline-svg";
 import startSvg from "@/assets/homeSvg/start.svg";
 import { useBackgroundSvgStore } from "./store/backgroundSvg";
 import Header from "./components/Header.vue";
+import { SEND, ws } from "@/plugins/webSockets";
+import { onMounted } from "vue";
+
+onMounted(() => {});
 
 let bgSvg = useBackgroundSvgStore();
 </script>

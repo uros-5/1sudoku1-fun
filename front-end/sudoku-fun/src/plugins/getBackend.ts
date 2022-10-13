@@ -3,6 +3,11 @@ export function backend(): string {
   return prod ? "https://1sudoku1.fun/w/" : "http://localhost:9000/";
 }
 
+export function frontend(): string {
+  let prod = import.meta.env.PROD;
+  return prod ? "https://1sudoku1.fun/" : "http://localhost:3000/";
+}
+
 export function wsUrl(): string {
   let prod = import.meta.env.PROD;
   let ws = prod ? "wss" : "ws";

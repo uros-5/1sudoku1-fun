@@ -1,12 +1,13 @@
 <template>
-  <div
-    class="grid grid-cols-12 all-rows md:grid-cols-6 grid-rows-6 md:grid-rows-4 gap-1"
-  >
+  <div class="grid grid-cols-12 all-rows md:grid-cols-6 grid-rows-6 md:grid-rows-4 gap-1">
     <GameClock />
     <GameBoard />
     <GameNumbers />
     <GameButtons />
     <GamePlayers />
+    <Teleport to="#app">
+      <GameFinishedModal v-if="store.gameFinished() == true" />
+    </Teleport>
   </div>
 </template>
 
@@ -41,4 +42,24 @@ import GameBoard from "@/components/GameBoard.vue";
 import GameNumbers from "@/components/GameNumbers.vue";
 import GameButtons from "@/components/GameButtons.vue";
 import GamePlayers from "@/components/GamePlayers.vue";
+import { onMounted } from "vue";
+import { SEND } from "@/plugins/webSockets";
+import router from "@/router";
+import { useSudokuStore } from "@/store/sudokuStore";
+import GameFinishedModal from "../components/GameFinishedModal.vue";
+
+const store = useSudokuStore();
+
+onMounted(() => {
+  let id = router.currentRoute.value.params["id"];
+  let self = store;
+  SEND({ t: "live_game", game_id: id });
+  SEND({ t: "game_url" });
+  setTimeout(() => {
+    if (self.$state.game._id == "") {
+      router.push('/');
+    }
+  }, 3000);
+
+})
 </script>

@@ -4,19 +4,31 @@
   >
     <div class="flex flex-col p-3">
       <h1 class="text-2xl tf md:text-xl lg:text-2xl xl:text-3xl cursor-default">
-        Username1
+        {{ store.$state.game.players[0]}} <span><b>{{ me(0) }}</b></span>
       </h1>
       <h1 class="text-2xl tf md:text-xl lg:text-2xl xl:text-3xl cursor-default">
-        Username2
+        {{ store.$state.game.players[1]}} <span><b>{{ me(1) }}</b></span>
       </h1>
-      <h5 class="text-xl md:text-xs lg:text-xl xl:text-2xl cursor-default">
-        05.11.2022
+      <h5 class="text-xl md:text-xs lg:text-xl xl:text-3xl  cursor-default">
+        {{ new Date(store.$state.game.clock.last_click).toLocaleString() }}
       </h5>
     </div>
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useSudokuStore } from '@/store/sudokuStore';
+
+const store = useSudokuStore();
+
+function me(index: number): string {
+  if (store.$state.game.players[index] == store.$state.username) {
+    return "(me)";
+  }
+  return "";
+}
+
+</script>
 
 <style scoped>
 .tf {
