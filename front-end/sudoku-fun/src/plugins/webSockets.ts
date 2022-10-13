@@ -1,3 +1,4 @@
+import { useBackgroundSvgStore } from "@/store/backgroundSvg";
 import { useRequestStore } from "@/store/createGameStore";
 import Sockette from "sockette";
 import { useSudokuStore } from "../store/sudokuStore";
@@ -43,6 +44,8 @@ function onmessage(e: any) {
 
   const sudokuStore = useSudokuStore();
   const requestStore = useRequestStore();
+  const bgStore = useBackgroundSvgStore();
+
 
   switch (msg.t) {
     case "games_count":
@@ -84,5 +87,4 @@ function onmessage(e: any) {
       break; 
   }
 }
-
 function onreconnect(e: any) {}

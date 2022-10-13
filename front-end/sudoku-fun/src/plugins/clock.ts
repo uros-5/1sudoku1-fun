@@ -61,6 +61,10 @@ export class Clock {
     this.renderTime(this.duration);
   }
 
+  restart() {
+    
+  }
+
   start(duration = 0) {
     if (this.running) return;
     if (duration !== 0) this.duration = duration;

@@ -6,10 +6,17 @@
 <script setup lang="ts">
 import { SEND, ws } from '@/plugins/webSockets';
 import router from '@/router';
+import { useBackgroundSvgStore } from '@/store/backgroundSvg';
+import { onMounted } from 'vue';
 
-let id = router.currentRoute.value.params["id"];
-SEND({t: "accept_game", "game_id": id});
+onMounted(() => {
+    let id = router.currentRoute.value.params["id"];
+    SEND({ t: "accept_game", "game_id": id });
+    useBackgroundSvgStore().$state.active = false;
+})
 
 </script>
 
-<style></style>
+<style>
+
+</style>

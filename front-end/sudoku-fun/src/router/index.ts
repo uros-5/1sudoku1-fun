@@ -24,10 +24,12 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-  //if (from.fullPath == "/" && to.fullPath.startsWith("/game")) {
-  const store = useBackgroundSvgStore();
-  let b = await store.activate();
-  return b;
+  if (from.fullPath == "/" && to.fullPath.startsWith("/game")) {
+   const store = useBackgroundSvgStore();
+    let b = await store.activate();
+    return b;
+  }
+  return true;
 });
 
 export default router;

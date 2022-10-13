@@ -5,6 +5,7 @@ import { generateSudokuItems } from "@/plugins/sudokuItems";
 import router from "@/router";
 import { SEND } from "@/plugins/webSockets";
 import startSound from "@/assets/sounds/start.ogg";
+import lowTime from "@/assets/sounds/low_time.ogg";
 import { Clock } from "@/plugins/clock";
 
 const DIRECTIONS = { 11: -1, 12: -9, 13: 1, 14: 9, 15: 0 };
@@ -50,14 +51,14 @@ export const useSudokuStore = defineStore("useSudokuStore", {
       let now = new Date();
       let self = this;
       let elapsed = now.getTime() - new Date(this.$state.game.clock.last_click).getTime();
-      this.$state.clock.setTime(this.$state.game.clock.clock - elapsed);
+      let clock = this.$state.game.clock.clock - elapsed;
+      this.$state.clock.setTime(clock);
       this.$state.clock.onTick(this.$state.clock.renderTime);
-      this.$state.clock.onFlag(() => {
-        this.startAudio();
-      });
       this.$state.clock.onHurry(() => {
         self.$state.hurry = true;
+        new Audio(lowTime).play();
       });
+      
       this.$state.clock.start()
     },
 
@@ -73,7 +74,6 @@ export const useSudokuStore = defineStore("useSudokuStore", {
     // resign
     resign() {
       SEND({ t: "resign", game_id: this.$state.game._id, game_move: "resigned" });
-      this.clock.pause(false);
       this.$state.hurry = false;
     },
 

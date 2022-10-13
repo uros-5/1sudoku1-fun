@@ -52,6 +52,9 @@ const store = useSudokuStore();
 
 onMounted(() => {
   let id = router.currentRoute.value.params["id"];
+  if (store.id() != "") {
+    return ;
+  }
   let self = store;
   SEND({ t: "live_game", game_id: id });
   SEND({ t: "game_url" });
@@ -60,6 +63,5 @@ onMounted(() => {
       router.push('/');
     }
   }, 3000);
-
 })
 </script>
