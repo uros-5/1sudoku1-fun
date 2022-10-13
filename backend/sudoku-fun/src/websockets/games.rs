@@ -9,7 +9,10 @@ use sudoku::Sudoku;
 
 use crate::{arc2, database::mongo::SudokuGame};
 
-use super::{messages::GameMove, requests::GameRequest, time_control::TimeControl};
+use super::{requests::GameRequest, time_control::TimeControl};
+
+const TEMP_CHARS: [char; 9] = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
 pub struct SudokuGames {
     pub games: Arc<Mutex<HashMap<String, SudokuGame>>>,
 }
@@ -43,23 +46,29 @@ impl SudokuGames {
         games.len()
     }
 
-    pub fn resign(&self, id: &String, username: &String) -> Option<([String; 2], usize)> {
+    pub fn resign(&self, id: &String, username: &String) -> Option<([String; 2], [u8; 2], usize)> {
         let mut games = self.games.lock().unwrap();
         if let Some(g) = games.get_mut(id) {
             if let Some(r) = g.game.resign(username) {
-                games.remove(id);
-                return Some(r);
+                let g = games.remove(id);
+                let score = g.unwrap().game.score.clone();
+                return Some((r.0, score, r.1));
             }
         }
         None
     }
 
-    pub fn make_move(&self, id: &String, user: &String, m: &String) -> Option<u8> {
+    pub fn make_move(
+        &self,
+        id: &String,
+        user: &String,
+        game_move: &String,
+    ) -> Option<(usize, [u8; 2], [String; 2])> {
         let mut games = self.games.lock().unwrap();
         if let Some(g) = games.get_mut(id) {
-            g.game.make_move(user, m);
+            g.game.make_move(user, game_move);
             if let Some(finished) = g.game.finished(user) {
-                return Some(finished as u8);
+                return Some(finished);
             }
         }
         None
@@ -68,7 +77,7 @@ impl SudokuGames {
     pub fn live_game(&self, id: &String, user: &String) -> Option<SudokuGame> {
         let games = self.games.lock().unwrap();
         if let Some(g) = games.get(id) {
-            if let Some(i) = g.game.player_index(user) {
+            if let Some(_) = g.game.player_index(user) {
                 return Some(g.clone());
             }
         }
@@ -79,6 +88,30 @@ impl SudokuGames {
         let games = self.games.lock().unwrap();
         if let Some(g) = games.get(id) {
             return g.game.get_current(user);
+        }
+        None
+    }
+
+    pub fn get_game_url(&self, username: &String) -> Option<String> {
+        let games = self.games.lock().unwrap();
+        for i in games.iter() {
+            if i.1.game.is_playing(username) {
+                return Some(String::from(i.0));
+            }
+        }
+        None
+    }
+
+    pub fn lost_on_time(&self, id: &String) -> Option<(bool, [u8; 2], Option<SudokuGame>)> {
+        let mut games = self.games.lock().unwrap();
+        if let Some(g) = games.get_mut(id) {
+            let result = g.game.lost_on_time();
+            if result.0 {
+                let sudoku_game = games.remove(id);
+                drop(games);
+                return Some((result.0, result.1, sudoku_game));
+            }
+            return Some((false, [0, 0], None));
         }
         None
     }
@@ -105,6 +138,9 @@ pub struct SudokuGen {
     pub started_with: String,
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
+    pub started_with_bytes: Vec<u8>,
+    #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
     pub solution: String,
     pub players: [String; 2],
     pub result: [u8; 2],
@@ -116,12 +152,13 @@ impl SudokuGen {
         let sudoku = Sudoku::generate();
         let started_with = sudoku.to_str_line().to_string();
         let started_with = String::from(&started_with);
+        let started_with_bytes = String::from(&started_with).into_bytes();
         let solution = sudoku.solution().unwrap().to_string();
         let clock = TimeControl::new(g.minute);
         let score = [0, 0];
         let current = Arc::new(Mutex::new([
-            String::from(&solution),
-            String::from(&solution),
+            String::from(&started_with),
+            String::from(&started_with),
         ]));
         let min = g.minute;
         let date_created = DateTime::now();
@@ -133,6 +170,7 @@ impl SudokuGen {
             min,
             date_created,
             started_with,
+            started_with_bytes,
             solution,
             players,
             result: [0, 0],
@@ -150,34 +188,36 @@ impl SudokuGen {
         None
     }
 
-    pub fn make_move(&self, user: &String, m: &String) {
-        if let Ok(msg) = serde_json::from_str::<GameMove>(&m) {
-            if let Some(_) = self.clock.current_duration() {
-                let m = SudokuGameMove::from(m);
-                self.make_sudoku_move(user, m);
-            }
+    pub fn make_move(&self, user: &String, game_move: &String) {
+        if let Some(_) = self.clock.current_duration() {
+            let m = SudokuGameMove::from(game_move);
+            self.make_sudoku_move(user, m);
         }
     }
 
-    pub fn make_sudoku_move(&self, user: &String, m: SudokuGameMove) {
+    pub fn make_sudoku_move(&self, user: &String, game_move: SudokuGameMove) {
         if let Some(index) = self.player_index(user) {
             let mut current = self.current.lock().unwrap();
             if let Some(s) = current.get_mut(index) {
-                match m {
+                match game_move {
                     SudokuGameMove::NormalMove { position, number } => {
                         let bytes = String::from(&s.clone());
                         let mut bytes = bytes.into_bytes();
-                        bytes[position as usize] = number;
-                        if let Ok(bytes) = String::from_utf8(bytes) {
-                            *s = bytes;
+                        if self.started_with_bytes[position as usize] == '.' as u8 {
+                            bytes[position as usize] = TEMP_CHARS[(number - 1) as usize] as u8;
+                            if let Ok(bytes) = String::from_utf8(bytes) {
+                                *s = bytes;
+                            }
                         }
                     }
                     SudokuGameMove::DeleteMove { position } => {
                         let bytes = String::from(&s.clone());
                         let mut bytes = bytes.into_bytes();
                         bytes[position as usize] = '.' as u8;
-                        if let Ok(bytes) = String::from_utf8(bytes) {
-                            *s = bytes;
+                        if self.started_with_bytes[position as usize] == '.' as u8 {
+                            if let Ok(bytes) = String::from_utf8(bytes) {
+                                *s = bytes;
+                            }
                         }
                     }
                     SudokuGameMove::DeleteAll => {
@@ -190,8 +230,8 @@ impl SudokuGen {
 
     pub fn resign(&mut self, user: &String) -> Option<([String; 2], usize)> {
         if let Some(index) = self.player_index(user) {
-            if let Some(tc) = self.clock.current_duration() {
-                self.status = 2;
+            if let Some(_) = self.clock.current_duration() {
+                self.status = index as u8 + 4;
                 self.result[index] = 0;
                 self.result[self.other_index(index)] = 1;
                 return Some((self.players.clone(), index));
@@ -200,17 +240,30 @@ impl SudokuGen {
         None
     }
 
-    pub fn finished(&self, user: &String) -> Option<usize> {
+    pub fn lost_on_time(&mut self) -> (bool, [u8; 2], [String; 2]) {
+        if let Some(_) = self.clock.current_duration() {
+            return (false, [0, 0], [String::from(""), String::from("")]);
+        }
+        let final_score = self.final_score();
+        (true, final_score.1, self.players.clone())
+    }
+
+    pub fn finished(&mut self, user: &String) -> Option<(usize, [u8; 2], [String; 2])> {
         if let Some(i) = self.get_current(user) {
             if i == self.solution {
-                return self.player_index(user);
+                let score = self.final_score();
+                return Some((
+                    self.player_index(user).unwrap(),
+                    score.1,
+                    self.players.clone(),
+                ));
             }
         }
         None
     }
 
     pub fn final_score(&mut self) -> (u8, [u8; 2]) {
-        let started_with = self.started_with.as_bytes();
+        let started_with = self.started_with_bytes.clone();
         let solution = self.solution.as_bytes();
         let current_m = self.current.lock().unwrap();
         let current = current_m.clone();
@@ -231,27 +284,29 @@ impl SudokuGen {
         for player in [0, 1] {
             for empty in &empty_fields {
                 if current[player][*empty] == solution[*empty] {
-                    self.score[player]+= 1;
+                    self.score[player] += 1;
                 }
             }
         }
         self.status_from_score(&self.score)
     }
 
-    
+    pub fn is_playing(&self, username: &String) -> bool {
+        if let Some(_) = self.player_index(username) {
+            return true;
+        }
+        false
+    }
 
-    fn status_from_score(&self, score: &[u8;2]) -> (u8,[u8;2]) {
+    fn status_from_score(&self, score: &[u8; 2]) -> (u8, [u8; 2]) {
         if score[0] == score[1] {
-            return (0, [0,0]);
+            return (2, score.clone());
+        } else if score[0] > score[1] {
+            return (0, score.clone());
+        } else if score[1] > score[0] {
+            return (1, score.clone());
         }
-        else if score[0] > score[1] {
-            return (1, [1,0]);
-        }
-        else if score[1] > score[0] {
-            return (1, [0,1])
-        }
-        return (3, [0,0]);
-
+        return (3, [0, 0]);
     }
 
     fn player_index(&self, user: &String) -> Option<usize> {
@@ -294,6 +349,7 @@ impl From<&String> for SudokuGameMove {
                 }
             }
         }
+
         Self::DeleteAll
     }
 }

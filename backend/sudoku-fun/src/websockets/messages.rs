@@ -6,7 +6,7 @@ pub struct LiveCount {
     pub cnt: u32,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CreatingGame {
     pub t: String,
     pub minute: u8,

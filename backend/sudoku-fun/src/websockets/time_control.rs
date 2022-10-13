@@ -1,7 +1,12 @@
+use std::sync::{Arc, Mutex};
+
 use chrono::{DateTime, Duration, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::database::serde_helpers::{duration_i32, i32_duration};
+use crate::{
+    arc2,
+    database::serde_helpers::{duration_i32, i32_duration},
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TimeControl {
@@ -13,7 +18,7 @@ pub struct TimeControl {
 
 impl TimeControl {
     pub fn new(minute: u8) -> Self {
-        let clock = Duration::seconds((minute as i64 * 60 as i64) as i64);
+        let clock = Duration::seconds((minute as i64 * 60 as i64 + 2) as i64);
         let last_click = Utc::now().into();
         Self { clock, last_click }
     }
@@ -33,5 +38,33 @@ impl TimeControl {
     fn elapsed(&self) -> Duration {
         let now: DateTime<FixedOffset> = Utc::now().into();
         now - self.last_click
+    }
+}
+
+#[derive(Clone)]
+pub enum MsgClock {
+    LostOnTime(Arc<Mutex<TimeCheck>>),
+}
+
+pub struct TimeCheck {
+    finished: Arc<Mutex<bool>>,
+}
+
+impl TimeCheck {
+    pub fn new() -> Self {
+        let finished = arc2(false);
+        Self { finished }
+    }
+
+    pub fn is_finished(&self) -> bool {
+        let f = self.finished.lock().unwrap();
+        let v = *f;
+        drop(f);
+        return v;
+    }
+
+    pub fn finished(&self) {
+        let mut f = self.finished.lock().unwrap();
+        *f = true;
     }
 }

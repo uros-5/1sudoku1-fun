@@ -3,17 +3,27 @@ use std::sync::Arc;
 use serde_json::Value;
 use tokio::sync::broadcast::Sender;
 
-use crate::database::{mongo::SudokuGame, session::UserSession, Database};
+use crate::{
+    arc2,
+    database::{
+        mongo::SudokuGame,
+        queries::{add_game, update_game},
+        session::UserSession,
+        Database,
+    },
+};
 
 use super::{
     messages::{CreatingGame, GameMove, SendTo},
     state::WsState,
+    time_control::{MsgClock, TimeCheck},
 };
 
 #[derive(Clone)]
 pub struct MessageHandler<'a> {
     pub ws: &'a Arc<WsState>,
     pub tx: &'a Sender<ClientMessage>,
+    pub clock_tx: &'a Sender<MsgClock>,
     pub db: &'a Arc<Database>,
     pub msg_sender: MsgSender,
 }
@@ -23,11 +33,13 @@ impl<'a> MessageHandler<'a> {
         ws: &'a Arc<WsState>,
         tx: &'a Sender<ClientMessage>,
         db: &'a Arc<Database>,
+        clock_tx: &'a Sender<MsgClock>,
         msg_sender: MsgSender,
     ) -> Self {
         Self {
             ws,
             tx,
+            clock_tx,
             db,
             msg_sender,
         }
@@ -64,14 +76,62 @@ impl<'a> MessageHandler<'a> {
                 let value = serde_json::json!({"t": "live_game_accepted", "game_id": &v.game_id});
                 let to = SendTo::Players(players);
                 self.msg_sender.send_msg(value, to);
+                add_game(&self.db.mongo.games, SudokuGame::from(&g)).await;
+
+                let mut clock_rv = self.clock_tx.subscribe();
+                let clock_tx = self.clock_tx.clone();
+                let id = String::from(&v.game_id);
+                let ws = self.ws.clone();
+
+                let _clock_task = tokio::spawn({
+                    let msg_sender = self.msg_sender.clone();
+                    let id = String::from(&id);
+                    let c = self.db.mongo.games.clone();
+                    async move {
+                        while let Ok(msg) = clock_rv.recv().await {
+                            match &msg {
+                                MsgClock::LostOnTime(t) => {
+                                    if let Some(res) = ws.games.lost_on_time(&id) {
+                                        if res.0 {
+                                            t.lock().unwrap().finished();
+                                            let value = serde_json::json!({"t": "game_finished", "score":res.1});
+                                            let game = res.2.unwrap();
+                                            msg_sender.send_msg(
+                                                value,
+                                                SendTo::Players(game.game.players.clone()),
+                                            );
+                                            update_game(&c, game).await;
+                                            break;
+                                        }
+                                        continue;
+                                    }
+                                    t.lock().unwrap().finished();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                let _clock_loop = tokio::spawn(async move {
+                    let clock = arc2(TimeCheck::new());
+                    loop {
+                        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                        let t = clock.lock().unwrap();
+                        if t.is_finished() {
+                            break;
+                        }
+                        if let Ok(_) = clock_tx.send(MsgClock::LostOnTime(clock.clone())) {}
+                    }
+                });
             }
         }
     }
 
     pub fn resign(&self, value: Value) {
         if let Ok(v) = serde_json::from_value::<GameMove>(value) {
-            if let Some((p, i)) = self.ws.games.resign(&v.game_id, &self.username()) {
-                let value = serde_json::json!({"t": "live_game_resigned", "index": i});
+            if let Some((p, s, i)) = self.ws.games.resign(&v.game_id, &self.username()) {
+                let value = serde_json::json!({"t": "live_game_resigned", "player": i, "score": s});
                 let to = SendTo::Players(p);
                 self.msg_sender.send_msg(value, to);
             }
@@ -80,9 +140,15 @@ impl<'a> MessageHandler<'a> {
 
     pub fn make_move(&self, value: Value) {
         if let Ok(v) = serde_json::from_value::<GameMove>(value) {
-            self.ws
-                .games
-                .make_move(&v.game_id, &self.username(), &v.game_move);
+            if let Some(finished) =
+                self.ws
+                    .games
+                    .make_move(&v.game_id, &self.username(), &v.game_move)
+            {
+                let value = serde_json::json!({"t":"live_game_winner", "player": finished.0, "score": finished.1});
+                let to = SendTo::Players(finished.2);
+                self.msg_sender.send_msg(value, to);
+            }
         }
     }
 
@@ -107,6 +173,20 @@ impl<'a> MessageHandler<'a> {
     pub fn get_username(&self) {
         let value = serde_json::json!({"t": "username", "username": &self.username()});
         self.msg_sender.send_msg(value, SendTo::Me);
+    }
+
+    pub fn request_url(&self) {
+        if let Some(url) = self.ws.requests.get_request_url(&self.username()) {
+            let value = serde_json::json!({"t": "request_url", "url": url});
+            self.msg_sender.send_msg(value, SendTo::Me);
+        }
+    }
+
+    pub fn game_url(&self) {
+        if let Some(url) = self.ws.games.get_game_url(&self.username()) {
+            let value = serde_json::json!({"t": "game_url", "url": url});
+            self.msg_sender.send_msg(value, SendTo::Me);
+        }
     }
 
     fn username(&self) -> String {

@@ -1,10 +1,9 @@
 use std::{
     collections::{HashMap, HashSet},
-    ops::Range,
     sync::{Arc, Mutex},
 };
 
-use mongodb::{options::Collation, Collection};
+use mongodb::Collection;
 
 use crate::{
     arc2,
@@ -97,7 +96,18 @@ impl GameRequests {
         None
     }
 
-    pub fn waiting_count(&self) -> usize {
+    pub fn get_request_url(&self, username: &String) -> Option<String> {
+        let rqs = self.requests.lock().unwrap();
+        for i in rqs.iter() {
+            if &i.1.caller == username {
+                return Some(String::from(i.0));
+            }
+        }
+
+        None
+    }
+
+    pub fn _waiting_count(&self) -> usize {
         let p = self.players.lock().unwrap();
         p.len()
     }

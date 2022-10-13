@@ -8,6 +8,7 @@ use axum::{
 use futures::{SinkExt, StreamExt};
 use serde_json::Value;
 use std::sync::Arc;
+use tokio::sync::broadcast;
 
 use crate::database::{session::UserSession, Database};
 
@@ -49,7 +50,7 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
     let (mut sender, mut receiver) = stream.split();
     let mut rx = ws.tx.subscribe();
     let username = String::from(&user.username);
-    let mut socket_send_task = tokio::spawn(async move {
+    let socket_send_task = tokio::spawn(async move {
         while let Ok(msg) = rx.recv().await {
             match &msg.to {
                 SendTo::Me => {
@@ -70,10 +71,11 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
     });
 
     let tx = ws.tx.clone();
+    let (clock_tx, _) = broadcast::channel(100);
 
-    let mut socket_recv_task = tokio::spawn(async move {
+    let _ = tokio::spawn(async move {
         let msg_sender = MsgSender::new(&user, &tx);
-        let handler = MessageHandler::new(&ws, &tx, &db, msg_sender);
+        let handler = MessageHandler::new(&ws, &tx, &db, &clock_tx, msg_sender);
         while let Some(Ok(msg)) = receiver.next().await {
             match msg {
                 Message::Text(text) => {
@@ -101,6 +103,10 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
                                     handler.live_game(value);
                                 } else if t == "live_game_line" {
                                     handler.live_game_line(value);
+                                } else if t == "request_url" {
+                                    handler.request_url();
+                                } else if t == "game_url" {
+                                    handler.game_url();
                                 }
                             }
                             _ => (),
@@ -108,6 +114,7 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
                     }
                 }
                 Message::Close(_c) => {
+                    socket_send_task.abort();
                     break;
                 }
                 _ => (),

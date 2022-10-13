@@ -16,9 +16,10 @@ use crate::database::Database;
 #[tokio::main]
 async fn main() {
     let db = Database::new().await;
-    let cors_layer = cors();
     let db = Arc::new(db);
     let ws = Arc::new(WsState::default());
+    let addr = db.p_key.addr().1;
+    let cors_layer = cors(addr);
     let app = Router::new()
         .route("/ws/", get(websocket_handler))
         .layer(Extension(db))
@@ -33,8 +34,7 @@ async fn main() {
         .unwrap();
 }
 
-fn cors() -> CorsLayer {
-    let addr = "http://localhost:5173";
+fn cors(addr: &str) -> CorsLayer {
     let cors = CorsLayer::new();
     cors.allow_origin(addr.parse::<HeaderValue>().unwrap())
         .allow_credentials(true)

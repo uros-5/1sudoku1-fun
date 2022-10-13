@@ -41,9 +41,19 @@ pub async fn create_for_cookie(m: &RedisCli, c: &Collection<Player>) -> UserSess
 
 pub async fn game_exist(c: &Collection<SudokuGame>, id: String) -> bool {
     if let Ok(r) = c.find_one(doc! {"_id": id}, None).await {
-        if let Some(r) = r {
+        if let Some(_) = r {
             return true;
         }
     }
     false
+}
+
+pub async fn add_game(c: &Collection<SudokuGame>, sudoku_game: SudokuGame) {
+    let _ = c.insert_one(sudoku_game, None).await;
+}
+
+pub async fn update_game(c: &Collection<SudokuGame>, sudoku_game: SudokuGame) {
+    let query = doc! {"_id": &sudoku_game._id};
+    let update = doc! {"$set": bson::to_bson(&sudoku_game).unwrap()};
+    let _ = c.update_one(query, update, None).await;
 }
