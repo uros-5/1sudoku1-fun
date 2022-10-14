@@ -45,10 +45,10 @@ impl<'a> MessageHandler<'a> {
         }
     }
 
-    pub fn games_count(&self) {
+    pub fn games_count(&self, to: SendTo) {
         let count = self.ws.games.games_count();
         let res = serde_json::json!({"t": "games_count", "cnt": count});
-        self.msg_sender.send_msg(res, SendTo::Me);
+        self.msg_sender.send_msg(res, to);
     }
 
     pub async fn create_game(&self, value: Value) {
@@ -82,7 +82,7 @@ impl<'a> MessageHandler<'a> {
                 let clock_tx = self.clock_tx.clone();
                 let id = String::from(&v.game_id);
                 let ws = self.ws.clone();
-
+                self.games_count(SendTo::All);
                 let _clock_task = tokio::spawn({
                     let msg_sender = self.msg_sender.clone();
                     let id = String::from(&id);

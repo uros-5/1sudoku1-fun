@@ -18,7 +18,7 @@
       <CreateGameModal v-if="requestStore.modalActive() == true" />
     </Teleport>
 
-    <h4 class="text-center tfont primary-text">0 players</h4>
+    <h4 class="text-center tfont primary-text">{{ gameStore.gameCount() }} games active</h4>
 
     <span class="hidden fill-cyan90">
       <span class="fill-cyan-900"></span>

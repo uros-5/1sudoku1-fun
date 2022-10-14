@@ -367,6 +367,10 @@ export const useSudokuStore = defineStore("useSudokuStore", {
         return false;
       }
     },
+
+    gameCount(): number {
+      return this.$state.gameCount;
+    }
   },
 });
 

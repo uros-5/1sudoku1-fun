@@ -76,6 +76,7 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
     let _ = tokio::spawn(async move {
         let msg_sender = MsgSender::new(&user, &tx);
         let handler = MessageHandler::new(&ws, &tx, &db, &clock_tx, msg_sender);
+        handler.games_count(SendTo::Me);
         while let Some(Ok(msg)) = receiver.next().await {
             match msg {
                 Message::Text(text) => {
@@ -85,8 +86,8 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
                             serde_json::Value::String(t) => {
                                 if t == "username" {
                                     handler.get_username();
-                                } else if t == "active_games" {
-                                    handler.games_count();
+                                } else if t == "games_count" {
+                                    handler.games_count(SendTo::Me);
                                 } else if t == "create_game" {
                                     handler.create_game(value).await;
                                 } else if t == "accept_game" {
