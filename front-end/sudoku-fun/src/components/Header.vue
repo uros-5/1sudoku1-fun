@@ -1,5 +1,5 @@
 <template>
-  <div v-if="router.fullPath != '/'" class="col-start-1 row-start-1">
+  <div v-if="inRoutes()" class="col-start-1 row-start-1">
     <div class="flex justify-center">
       <router-link to="/">
         <header class="tf py-1 text-xl">1Sudoku1.fun</header>
@@ -10,8 +10,15 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import InlineSvg from "vue-inline-svg";
-import logo1 from "@/assets/homeSvg/logo1.svg";
+
+function inRoutes(): boolean {
+  let fullPath = router.value.fullPath;
+  if (fullPath.startsWith("/game")) {
+    return true
+  }
+  return false
+}
+
 const router = useRouter().currentRoute;
 </script>
 

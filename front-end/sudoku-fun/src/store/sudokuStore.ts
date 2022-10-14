@@ -58,7 +58,7 @@ export const useSudokuStore = defineStore("useSudokuStore", {
         self.$state.hurry = true;
         new Audio(lowTime).play();
       });
-      
+
       this.$state.clock.start()
     },
 
@@ -108,7 +108,10 @@ export const useSudokuStore = defineStore("useSudokuStore", {
 
     // check if i can update
     canIUpdate(index: number): boolean {
-      if (this.$state.game.started_with.at(index) == ".") {
+      if (index == -1) {
+        return false;
+      }
+      else if (this.$state.game.started_with.at(index) == ".") {
         return true;
       } else {
         return false;
@@ -126,7 +129,7 @@ export const useSudokuStore = defineStore("useSudokuStore", {
     },
 
     // set winner
-    setWinner(player: number, score: [number,number]) {
+    setWinner(player: number, score: [number, number]) {
       this.$state.game.score = score;
       this.$state.game.status = player;
       this.clock.pause(false);
@@ -211,6 +214,7 @@ export const useSudokuStore = defineStore("useSudokuStore", {
     deselect() {
       this.setMyNumber(0);
       this.$state.selected = -1;
+      this.otherItems = [];
     },
 
     erase() {

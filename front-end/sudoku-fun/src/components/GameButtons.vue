@@ -1,10 +1,12 @@
 <template>
-  <div class="col-start-9 col-span-2 row-start-3 md:col-start-5 md:row-start-2">
+  <div class="col-start-2 col-span-10 row-start-4 md:col-start-5 md:row-start-2">
     <div
       
-      class="flex flex-col items-center h-full justify-around bg-sky-100 border-l-0 border-t-0 border-2 border-l-sky-300 border-sky-300 shadow-sky-300 shadow md:shadow-md"
+      class="p-3 flex flex-row md:flex-col items-center h-full justify-around bg-sky-100 border-l-0 border-t-0 border-2 border-l-sky-300 border-sky-300 shadow-sky-300 shadow md:shadow-md"
     >
       <InlineSvg
+      height="55"
+      widht="55"
       class="cursor-pointer"
       @click="store.buttonActions()[i]"
        v-for="(v,i) in icons" :src="v" />

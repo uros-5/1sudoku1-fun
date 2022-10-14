@@ -1,6 +1,6 @@
 <template>
   <div
-    class="col-start-1 col-end-3 row-start-4 md:col-start-3 md:col-span-1 md:row-start-4"
+    class="col-start-1 col-end-12 row-start-5 md:col-start-3 md:col-span-1 md:row-start-4"
   >
     <div class="flex flex-col p-3">
       <h1 class="text-2xl tf md:text-xl lg:text-2xl xl:text-3xl cursor-default">

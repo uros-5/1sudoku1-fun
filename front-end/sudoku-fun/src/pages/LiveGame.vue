@@ -61,7 +61,9 @@ onMounted(() => {
   setTimeout(() => {
     if (self.$state.game._id == "") {
       router.push('/');
+      return ;
     }
+    
   }, 3000);
 })
 </script>

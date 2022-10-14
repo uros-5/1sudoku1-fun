@@ -14,7 +14,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
 import {useSudokuStore } from "@/store/sudokuStore";
 
 const store = useSudokuStore();
