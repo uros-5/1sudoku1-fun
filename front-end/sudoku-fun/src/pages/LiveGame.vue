@@ -13,7 +13,7 @@
 
 <style>
 .all-rows {
-  grid-template-rows: 0.1fr 3fr 0.75fr 0.35fr;
+  grid-template-rows: auto; 
 }
 
 @media (min-width: 540px) {
