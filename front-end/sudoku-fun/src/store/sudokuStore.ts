@@ -7,6 +7,7 @@ import { SEND } from "@/plugins/webSockets";
 import startSound from "@/assets/sounds/start.ogg";
 import lowTime from "@/assets/sounds/low_time.ogg";
 import { Clock } from "@/plugins/clock";
+import init, {SudokuSolver} from "sudoku-wasm";
 
 const DIRECTIONS = { 11: -1, 12: -9, 13: 1, 14: 9, 15: 0 };
 const FINISHED = [0, 1, 2, 4, 5];
@@ -46,6 +47,15 @@ export const useSudokuStore = defineStore("useSudokuStore", {
       this.setClock();
     },
 
+    // setSolver
+    setSolver(line: string) {
+      init().then((_export) => {
+        this.sudokuSolver = new SudokuSolver(line);
+        this.sudokuSolver.solve();
+      })
+
+    },
+
     // set clock
     setClock() {
       let now = new Date();
@@ -61,8 +71,6 @@ export const useSudokuStore = defineStore("useSudokuStore", {
 
       this.$state.clock.start()
     },
-
-
 
     // delete all fields
     deleteAll() {
@@ -80,6 +88,7 @@ export const useSudokuStore = defineStore("useSudokuStore", {
     // set my line
     setLine(line: string) {
       this.$state.myLine = line;
+      this.setSolver(line);
     },
 
     // redirect game request to new game
@@ -102,8 +111,32 @@ export const useSudokuStore = defineStore("useSudokuStore", {
             newValue.toString()
           );
           SEND({ t: "make_move", game_id: this.$state.game._id, game_move: `${index}_${newValue}` });
+          let isValid = this.sudokuSolver?.is_valid_move(index, newValue);
+          if (isValid) {
+            this.removeWrong(index);
+          }
+          else {
+            this.addToWrong(index);
+          }
+          
         }
       }
+    },
+
+    addToWrong(index: number) {
+      let exist = this.$state.wrongItems.find(item=> item == index);
+      if (exist == undefined) {
+        this.$state.wrongItems.push(index);
+      }
+    },
+
+    removeWrong(index: number) {
+      this.$state.wrongItems = this.$state.wrongItems.filter(item => item != index);
+    },
+
+    isWrong(index: number): boolean {
+      let exist = this.$state.wrongItems.find(item=> item == index);
+      return exist ? true : false;
     },
 
     // check if i can update
@@ -417,7 +450,9 @@ function emptyClientGame(): clientGame {
     myNumber: -1,
     keyboardMap: new Map(),
     clock: new Clock(0, 0, 0, '0'),
-    hurry: false
+    hurry: false,
+    sudokuSolver: null,
+    wrongItems: []
   }
 }
 

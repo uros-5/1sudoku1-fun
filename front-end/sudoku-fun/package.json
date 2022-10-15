@@ -7,6 +7,7 @@
     "dev": "vite --port 3000 --host",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
+    "rsw": "rsw",
     "format": "prettier .  --write"
   },
   "dependencies": {
@@ -14,6 +15,7 @@
     "pinia": "^2.0.22",
     "random-item": "^4.0.1",
     "sockette": "^2.0.6",
+    "sudoku-wasm": "^0.1.1",
     "vue": "^3.2.37",
     "vue-inline-svg": "^3.1.0",
     "vue-router": "^4.1.5"
@@ -28,6 +30,7 @@
     "tailwindcss": "^3.1.8",
     "typescript": "^4.6.4",
     "vite": "^3.1.0",
+    "vite-plugin-rsw": "^2.0.9",
     "vue-tsc": "^1.0.0"
   }
 }

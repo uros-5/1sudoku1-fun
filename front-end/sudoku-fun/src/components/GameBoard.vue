@@ -31,7 +31,8 @@
                 <InlineSvg :src="svgPath(v)" v-if="v != '.'" :id="v" />
                 <InlineSvg
                   :src="svgPath(store.myLineAt(i))"
-                  style="--currentColor: rgb(3 105 161)"
+                  class="ok-num"
+                  :class="{'wrong-num': store.isWrong(i)}"
                   v-else-if="!store.isEmpty(i)"
                   :id="v"
                 />
@@ -81,6 +82,16 @@ onUnmounted( () => {
 </script>
 
 <style scoped>
+
+.ok-num {
+  --currentColor: rgb(3 105 161);
+}
+.wrong-num {
+  --currentColor: red;
+}
+
+
+
 .bottomBorder {
   border-bottom: 2.8px solid black !important;
 }

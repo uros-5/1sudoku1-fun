@@ -1,3 +1,4 @@
+import { SudokuSolver } from "sudoku-wasm";
 import { Ref } from "vue";
 import { Clock } from "./plugins/clock";
 import { SudokuItem } from "./plugins/sudokuItems";
@@ -48,6 +49,8 @@ export interface clientGame {
   keyboardMap: Map<string, number>;
   clock: Clock;
   hurry: boolean;
+  sudokuSolver: SudokuSolver | null;
+  wrongItems: Array<number>;
 }
 
 export interface createGameStore {
