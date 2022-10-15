@@ -127,26 +127,30 @@ impl<'a> MessageHandler<'a> {
         }
     }
 
-    pub fn resign(&self, value: Value) {
-        if let Ok(v) = serde_json::from_value::<GameMove>(value) {
-            if let Some(game_result) = self.ws.games.resign(&v.game_id, &self.username()) {
+    pub async fn resign(&self, value: Value) {
+        if let Ok(game_move) = serde_json::from_value::<GameMove>(value) {
+            if let Some(game_result) = self.ws.games.resign(&game_move.game_id, &self.username()) {
                 let value = serde_json::json!({"t": "live_game_resigned", "player": game_result.player, "score": game_result.score});
                 let to = SendTo::Players(game_result.players);
                 self.msg_sender.send_msg(value, to);
+                let c = self.db.mongo.games.clone();
+                update_game(&c, game_result.game.unwrap()).await;
             }
         }
     }
 
-    pub fn make_move(&self, value: Value) {
+    pub async fn make_move(&self, value: Value) {
         if let Ok(v) = serde_json::from_value::<GameMove>(value) {
-            if let Some(finished) =
+            if let Some(game_result) =
                 self.ws
                     .games
                     .make_move(&v.game_id, &self.username(), &v.game_move)
             {
-                let value = serde_json::json!({"t":"live_game_winner", "player": finished.player, "score": finished.score});
-                let to = SendTo::Players(finished.players);
+                let value = serde_json::json!({"t":"live_game_winner", "player": game_result.player, "score": game_result.score});
+                let to = SendTo::Players(game_result.players);
                 self.msg_sender.send_msg(value, to);
+                let c = self.db.mongo.games.clone();
+                update_game(&c, game_result.game.unwrap()).await;
             }
         }
     }

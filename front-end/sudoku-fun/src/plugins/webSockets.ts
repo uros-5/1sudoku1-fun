@@ -65,6 +65,7 @@ function onmessage(e: any) {
     case "live_game":
       sudokuStore.setGame(msg.game);
       sudokuStore.setId(msg.game._id);
+      requestStore.setId("");
       break;
     case "live_game_line":
       sudokuStore.setLine(msg.line);

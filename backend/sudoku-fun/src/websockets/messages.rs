@@ -60,4 +60,8 @@ impl GameResult {
             game: None,
         }
     }
+
+    pub fn update_game(&mut self, game: Option<SudokuGame>) {
+        self.game = game;
+    }
 }

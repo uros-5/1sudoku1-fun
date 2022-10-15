@@ -46,7 +46,6 @@ pub enum MsgClock {
     LostOnTime(Arc<Mutex<TimeCheck>>),
 }
 
-
 #[derive(Clone)]
 pub struct CurrentClock {
     pub finished: bool,

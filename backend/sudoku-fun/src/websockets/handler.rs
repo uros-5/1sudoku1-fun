@@ -93,13 +93,13 @@ async fn websocket(stream: WebSocket, db: Arc<Database>, ws: Arc<WsState>, user:
                                 } else if t == "accept_game" {
                                     handler.accept_game(value).await;
                                 } else if t == "resign" {
-                                    handler.resign(value)
+                                    handler.resign(value).await;
                                 } else if t == "make_move" {
-                                    handler.make_move(value);
+                                    handler.make_move(value).await;
                                 } else if t == "delete_one" {
-                                    handler.make_move(value);
+                                    handler.make_move(value).await;
                                 } else if t == "delete_all" {
-                                    handler.make_move(value);
+                                    handler.make_move(value).await;
                                 } else if t == "live_game" {
                                     handler.live_game(value);
                                 } else if t == "live_game_line" {
