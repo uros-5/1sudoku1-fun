@@ -110,8 +110,8 @@ export const useSudokuStore = defineStore("useSudokuStore", {
             index,
             newValue.toString()
           );
-          SEND({ t: "make_move", game_id: this.$state.game._id, game_move: `${index}_${newValue}` });
-          let isValid = this.sudokuSolver?.is_valid_move(index, newValue);
+          SEND({ t: "make_move", game_id: this.$state.game._id, game_move: `${index}_${newValue-1}` });
+          let isValid = this.sudokuSolver?.is_valid_move(index, newValue-1);
           if (isValid) {
             this.removeWrong(index);
           }

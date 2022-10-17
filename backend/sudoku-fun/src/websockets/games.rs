@@ -200,7 +200,7 @@ impl SudokuGen {
                         let bytes = String::from(&s.clone());
                         let mut bytes = bytes.into_bytes();
                         if self.started_with_bytes[position as usize] == '.' as u8 {
-                            bytes[position as usize] = TEMP_CHARS[(number - 1) as usize] as u8;
+                            bytes[position as usize] = TEMP_CHARS[number as usize] as u8;
                             if let Ok(bytes) = String::from_utf8(bytes) {
                                 *s = bytes;
                             }
